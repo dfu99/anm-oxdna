@@ -34,6 +34,11 @@ ENDIF(INTEL)
 
 PROJECT(oxDNA)
 
+# Added for compiling on GTech PACE by Dan Fu
+set(CUDA_COMMON_ARCH OFF CACHE BOOL "" FORCE)
+set(CUDA_ARCH_BIN    "50;60;61;70;75;80;86" CACHE STRING "" FORCE)
+set(CUDA_ARCH_PTX    ""               	 CACHE STRING "" FORCE)
+
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
 
