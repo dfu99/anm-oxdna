@@ -6,16 +6,14 @@
  */
 
  #include <cuda_runtime.h>
- #include <texture_types.h>
- #include <texture_fetch_functions.h>
+
+ extern cudaTextureObject_t counters_cells_tex;
 
 __constant__ float verlet_sqr_rverlet[1];
 __constant__ int verlet_N[1];
 
 __constant__ int verlet_N_cells_side[3];
 __constant__ int verlet_max_N_per_cell[1];
-
-extern texture<int, 1, cudaReadModeElementType> counters_cells_tex;
 
 __forceinline__ __device__ int neigh_cell(int3 index, int3 offset) {
 	// neighbour cell of this cell

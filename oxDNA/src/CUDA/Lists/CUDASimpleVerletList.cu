@@ -14,7 +14,7 @@
 #include <thrust/copy.h>
 #include "../../Utilities/oxDNAException.h"
 
-texture<int, 1, cudaReadModeElementType> counters_cells_tex;
+cudaTextureObject_t counters_cells_tex = 0;
 
 template<typename number, typename number4>
 CUDASimpleVerletList<number, number4>::CUDASimpleVerletList() : _max_density_multiplier(1) {
@@ -154,8 +154,19 @@ void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_
 	cudaThreadSynchronize();
 	if(_d_cell_overflow[0] == true) throw oxDNAException("A cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
 
-	// texture binding for the number of particles contained in each cell
-	cudaBindTexture(0, counters_cells_tex, _d_counters_cells, sizeof(int)*_N_cells);
+	// build a resource descriptor for a 1D array of ints
+	cudaResourceDesc resDesc = {};
+	resDesc.resType                    = cudaResourceTypeLinear;
+	resDesc.res.linear.devPtr          = _d_counters_cells;
+	resDesc.res.linear.desc            = cudaCreateChannelDesc<int>();
+	resDesc.res.linear.sizeInBytes     = sizeof(int) * _N_cells;
+
+	// build a simplest texture descriptor
+	cudaTextureDesc texDesc = {};
+	texDesc.readMode = cudaReadModeElementType;
+
+	// create the object
+	cudaCreateTextureObject(&counters_cells_tex, &resDesc, &texDesc, nullptr);
 
 	// for edge based approach
 	if(this->_use_edge) {
@@ -182,7 +193,8 @@ void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_
 		CUT_CHECK_ERROR("update_neigh_list (SimpleVerlet) error");
 	}
 
-	cudaUnbindTexture(counters_cells_tex);
+	// afterwards, tear it down
+	cudaDestroyTextureObject(counters_cells_tex);
 }
 
 template class CUDASimpleVerletList<float, float4>;
