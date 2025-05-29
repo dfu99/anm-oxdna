@@ -7,11 +7,14 @@
 
 #include "CUDASimpleVerletList.h"
 #include "CUDA_simple_verlet.cuh"
+#include <cuda_runtime.h>
 #include <thrust/scan.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <thrust/copy.h>
 #include "../../Utilities/oxDNAException.h"
+
+texture<int, 1, cudaReadModeElementType> counters_cells_tex;
 
 template<typename number, typename number4>
 CUDASimpleVerletList<number, number4>::CUDASimpleVerletList() : _max_density_multiplier(1) {
